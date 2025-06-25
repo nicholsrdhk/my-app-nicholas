@@ -1,9 +1,15 @@
 import { View, ScrollView, Text, StyleSheet } from "react-native"
 
-export const Info = () => {
+interface InfoProps {
+    description?: string;
+}
+
+export const Info = (props: InfoProps) => {
     return (
         <ScrollView contentContainerStyle={styles.container}>
-            <Text style={styles.paragraph}>
+
+            <Text>{props.description}</Text>
+            {/* <Text style={styles.paragraph}>
                 React.lazy adalah fitur dari React yang memungkinkan pemuatan komponen dilakukan secara lazy (tertunda),
                 sehingga komponen hanya dimuat saat benar-benar dibutuhkan, membantu mengurangi beban awal aplikasi dan
                 mempercepat waktu muat.
@@ -27,7 +33,7 @@ export const Info = () => {
                         <Text style={styles.itemText}>{item}</Text>
                     </View>
                 ))}
-            </View>
+            </View> */}
         </ScrollView>
     )
 }

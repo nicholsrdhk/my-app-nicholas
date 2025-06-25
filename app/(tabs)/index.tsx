@@ -1,20 +1,66 @@
 // app/(tabs)/index.tsx
-import { Text, View, StyleSheet, Image, ScrollView, TouchableOpacity } from "react-native";
+import { FlatList, Text, View, StyleSheet, Image, ScrollView, TouchableOpacity, ToastAndroid } from "react-native";
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { router } from "expo-router";
+import axios from 'axios';
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { setData } from "@/store/reducer/kursusSlice";
+import { CourseCard } from "@/components/courseCard";
 
 const Home = () => {
-    const onGoToDetail = () => {
-        router.push('/detail');
+    const dispatch = useDispatch();
+    const kursusList = useSelector(state => state.kursus.data)
+
+    const onGoToDetail = (itemId:String) => {
+        router.push(`/detail?id=${itemId}`);
     };
 
     const onStartCourse = () => {
         router.push('/course');
     };
 
+    const onGetData = async () => {
+        try {
+            const response = await axios.get('https://elearning-api-two.vercel.app/api/kursus');
+            dispatch(setData(response.data.data))
+        } catch (error) {
+            dispatch(setData([]));
+            const message = error?.message || 'Gagal mengambil data';
+
+            ToastAndroid.showWithGravity(
+                message,
+                ToastAndroid.SHORT,
+                ToastAndroid.CENTER
+            );
+        }
+    }
+
+    useEffect (() => {
+        onGetData();
+    }, []);
+
     return (
-        <SafeAreaProvider>
-            <ScrollView style={styles.container}>
+        <SafeAreaProvider style={styles.container}>
+            <FlatList
+                onRefresh={() => onGetData()}
+                refreshing={false}
+                data={kursusList}
+                renderItem={({item}) => 
+                    <CourseCard 
+                        onGoToDetail={()=>onGoToDetail(item._Id)}
+                        onStartCourse={onStartCourse}
+                        catergory={item.kategori}
+                        title={item.title}
+                        deskription={item.deskripsi}
+                        image={item.img_url}
+                        tanggal={item.tgl}
+                     />
+                }
+                keyExtractor={item => item._id}
+            />
+            
+            {/* <ScrollView style={styles.container}>
                 <View style={styles.card}>
                     <Image
                         source={{ uri: 'https://refine.ams3.cdn.digitaloceanspaces.com/blog/2022-12-07-react-lazy/social-2.png' }}
@@ -61,7 +107,7 @@ const Home = () => {
                         </View>
                     </View>
                 </View>
-            </ScrollView>
+            </ScrollView> */}
         </SafeAreaProvider>
     );
 };
@@ -71,70 +117,6 @@ const styles = StyleSheet.create({
         padding: 15,
         backgroundColor: '#f4f6f8'
     },
-    card: {
-        backgroundColor: 'white',
-        borderRadius: 10,
-        overflow: 'hidden',
-        marginBottom: 20,
-        elevation: 2
-    },
-    image: {
-        width: '100%',
-        height: 180,
-        resizeMode: 'cover'
-    },
-    cardContent: {
-        padding: 15
-    },
-    headerRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 10
-    },
-    title: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        flex: 1,
-        marginRight: 10
-    },
-    category: {
-        fontSize: 12,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        backgroundColor: '#f0f2f5',
-        borderRadius: 12,
-        overflow: 'hidden'
-    },
-    description: {
-        fontSize: 14,
-        marginBottom: 15
-    },
-    buttonRow: {
-        flexDirection: 'row',
-        justifyContent: 'flex-start',
-        gap: 10
-    },
-    previewButton: {
-        backgroundColor: '#dbeafe',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 5
-    },
-    previewText: {
-        color: '#1e3a8a',
-        fontWeight: 'bold'
-    },
-    startButton: {
-        backgroundColor: '#fce7f3',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 5
-    },
-    startText: {
-        color: '#9d174d',
-        fontWeight: 'bold'
-    }
 });
 
 export default Home;

@@ -1,15 +1,56 @@
 // app/detail.tsx
-import React, { useState } from "react";
-import { View, StyleSheet, Button, ScrollView, Text, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, Button, ScrollView, Text, TouchableOpacity, ToastAndroid } from "react-native";
 import { Info, Materi } from "../components/modules/detail";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import axios from "axios";
 
 const Detail = () => {
   const [activeTab, setActiveTab] = useState("info");
+  const [description, setDescription] = useState('');
+  const [itemTopic, setItemTopic] = useState([]);
+  const { id } = useLocalSearchParams();
 
-  const onStartCourse = () => {
-    router.push('/course');
-  };
+  const onGetData = async () => {
+        try {
+            const response = await axios.get(`https://elearning-api-two.vercel.app/api/kursus/${id}`);
+            setDescription(response.data.data.deskripsi);
+
+            if(response.data.data.content && response.data.data.content.length > 0) {
+              const topic = response.data.data.content.map((item:any, index:Number) => {
+                return {
+                  id: indexedDB.toString(),
+                  title: item.type,
+                  describe: item.type
+                }
+              });
+              setItemTopic(topic);
+            }
+
+        } catch (error) {
+            const message = error?.message || 'Gagal mengambil data';
+
+            ToastAndroid.showWithGravity(
+                message,
+                ToastAndroid.SHORT,
+                ToastAndroid.CENTER
+            );
+        }
+    }
+
+    const UIActiveTabs = () => {
+      if (activeTab == 'info') return <Info description={description} />
+      if (activeTab == 'index') return <Materi />
+      return <Info description={description} />
+    }
+
+    const onStartCourse = () => {
+      router.push('/course');
+    };
+
+    useEffect (() => {
+        onGetData();
+    }, []);
 
   return (
     <View style={styles.container}>
